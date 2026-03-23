@@ -1,0 +1,42 @@
+# Underwater Map Converter
+
+Standalone Trackmania 2020 R&D/conversion engine for turning existing maps into underwater-style variants.
+
+This repo is the new home for the water-specific work that was previously prototyped inside `map_viewer`.
+
+## Layout
+
+- `src` - the actual C# project root
+- `.nadeo_re_documentation/water-blocks` - water-focused R&D docs
+- `.nadeo_re_documentation/testing` - notes about the testing bridge
+- `research/legacy-scripts` - archived one-off prototype scripts from the earlier phase
+
+## Main workflow
+
+Use the top-level `make-underwater-map` command for the simplest workflow:
+
+- `make-underwater-map <inputMapPath> <suffix> [--variant normal|meshless|both] [--coverage one-layer|full-stack]`
+
+Examples:
+
+```powershell
+dotnet run --project src\UnderwaterMapConverter.csproj -- make-underwater-map "C:\Maps\Winter 2026 - 03.Map.Gbx" "Underwater" --variant both --coverage full-stack
+dotnet run --project src\UnderwaterMapConverter.csproj -- make-underwater-map "C:\Maps\Winter 2026 - 01.Map.Gbx" "Underwater" --variant meshless --coverage one-layer
+```
+
+`make-underwater-map` automatically:
+
+- detects the environment
+- picks the matching carrier family
+- applies the current uniform-sheet placement logic
+- exports a new map with the suffix you choose
+
+## Advanced workflow
+
+Lower-level commands still exist for more manual control:
+
+- `convert`
+- `extrude-template-volume`
+- `flood-vista`
+- `place-water-carrier-lattice`
+- `testing`

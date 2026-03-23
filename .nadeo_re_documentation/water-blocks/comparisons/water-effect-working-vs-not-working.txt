@@ -1,0 +1,90 @@
+Water-on-car working vs not working
+===================================
+
+Source of truth:
+- user manual in-game testing
+- test maps built specifically to check whether blocks apply the water effect to the car
+
+Interpretation:
+- "Working" means the block applies the expected water-on-car / wet-wheels behavior.
+- "Not working" means the block can visually carry water or is water-adjacent, but does not apply the water effect to the car.
+
+BlueBay
+-------
+
+Working:
+- RoadTechDiagLeftStraightOnBeach
+- RoadTechDiagRightStraightOnBeach
+- RoadDirtDiagLeftStraightOnBeach
+- RoadDirtDiagRightStraightOnBeach
+- RoadBumpDiagLeftStraightOnBeach
+- RoadBumpDiagRightStraightOnBeach
+- RoadIceWithWallLeftDiagLeftStraightOnBeach
+- RoadIceWithWallRightDiagLeftStraightOnBeach
+- RoadIceWithWallLeftDiagRightStraightOnBeach
+- RoadIceWithWallRightDiagRightStraightOnBeach
+
+Not working:
+- everything else in the tested `*OnBeach*` / `*OnSeaCliff13*` shoreline families
+
+GreenCoast
+----------
+
+Working:
+- `DecoLake*`
+- `Open*RoadStraightOnLakeShore*`
+- `Platform*BaseOnLakeShore*`
+- `Road*OnLakeShore*`
+- `Road*OnLakeShoreStraight*`
+
+Not working:
+- none observed in the provided test map / user report
+
+RedIsland
+---------
+
+Working:
+- `DecoLake*`
+- `DecoRiver*`
+- `Open*RoadStraightOnWaterHill*`
+- `Platform*BaseOnWaterHill*`
+- `Road*OnWaterHill*`
+- `Road*OnWaterHillStraight*`
+
+Not working:
+- none observed in the provided test map / user report
+
+WhiteShore
+----------
+
+Working:
+- RoadTechDiagLeftStraightOnWaterShore1
+- RoadTechDiagRightStraightOnWaterShore1
+- RoadDirtDiagLeftStraightOnWaterShore1
+- RoadDirtDiagRightStraightOnWaterShore1
+- RoadBumpDiagLeftStraightOnWaterShore1
+- RoadBumpDiagRightStraightOnWaterShore1
+- RoadIceWithWallLeftDiagLeftStraightOnWaterShore1
+- RoadIceWithWallRightDiagLeftStraightOnWaterShore1
+- RoadIceWithWallLeftDiagRightStraightOnWaterShore1
+- RoadIceWithWallRightDiagRightStraightOnWaterShore1
+- DecoTerrainRocky
+
+Not working:
+- the broader straight / platform / open-road `*OnWaterShore1*` families
+
+Current technical explanation
+-----------------------------
+
+BlueBay and WhiteShore:
+- The current strongest structural predictor is whether the block's top-level prefab directly includes the local zone water base prefab.
+- In both environments, the blocks that worked in testing align with that pattern, and the blocks that did not work mostly align with the absence of that direct water-base inclusion.
+
+GreenCoast and RedIsland:
+- User testing indicates a broader working set than BlueBay / WhiteShore.
+- This means the top-level water-base check is not sufficient to explain those environments completely.
+- The most likely explanation is that GreenCoast / RedIsland bridge/shore transition prefabs or other deeper local prefabs are enough to carry the gameplay water semantics even when the top-level prefab does not directly list the local zone water base.
+
+Bottom line:
+- BlueBay / WhiteShore currently look strict.
+- GreenCoast / RedIsland currently look broader.
