@@ -35,6 +35,7 @@ internal static class MakeUnderwaterMapCommand
 
         var inputMapPath = Path.GetFullPath(positionalArgs[0]);
         var suffix = positionalArgs[1];
+        var formattedSuffix = MapPathHelpers.FormatParenthesizedSuffix(suffix);
 
         if (!File.Exists(inputMapPath))
         {
@@ -89,7 +90,8 @@ internal static class MakeUnderwaterMapCommand
 
         if (runNormal)
         {
-            var outputPath = MapPathHelpers.BuildSuffixedOutputPath(inputMapPath, runMeshless ? $"{suffix} Normal" : suffix);
+            var outputSuffix = runMeshless ? $"{formattedSuffix} Normal" : formattedSuffix;
+            var outputPath = MapPathHelpers.BuildSuffixedOutputPath(inputMapPath, outputSuffix);
             var exitCode = ExtrudeTemplateVolumeCommand.Run(
             [
                 inputMapPath,
@@ -104,6 +106,7 @@ internal static class MakeUnderwaterMapCommand
                 "--rotate-quarter-turns", rotateQuarterTurns.ToString(CultureInfo.InvariantCulture),
                 "--min-world-y", minWorldY.ToString(CultureInfo.InvariantCulture),
                 "--max-world-y", effectiveMaxWorldY.ToString(CultureInfo.InvariantCulture),
+                "--map-name-suffix", outputSuffix,
                 "--write"
             ]);
 
@@ -115,7 +118,8 @@ internal static class MakeUnderwaterMapCommand
 
         if (runMeshless)
         {
-            var outputPath = MapPathHelpers.BuildSuffixedOutputPath(inputMapPath, runNormal ? $"{suffix} Meshless" : suffix);
+            var outputSuffix = runNormal ? $"{formattedSuffix} Meshless" : formattedSuffix;
+            var outputPath = MapPathHelpers.BuildSuffixedOutputPath(inputMapPath, outputSuffix);
             var exitCode = ExtrudeTemplateVolumeCommand.Run(
             [
                 inputMapPath,
@@ -130,6 +134,7 @@ internal static class MakeUnderwaterMapCommand
                 "--rotate-quarter-turns", rotateQuarterTurns.ToString(CultureInfo.InvariantCulture),
                 "--min-world-y", minWorldY.ToString(CultureInfo.InvariantCulture),
                 "--max-world-y", effectiveMaxWorldY.ToString(CultureInfo.InvariantCulture),
+                "--map-name-suffix", outputSuffix,
                 "--write"
             ]);
 
@@ -142,7 +147,7 @@ internal static class MakeUnderwaterMapCommand
         Console.WriteLine($$"""
         {
           "inputMapPath": "{{inputMapPath.Replace("\\", "\\\\")}}",
-          "suffix": "{{suffix}}",
+          "suffix": "{{formattedSuffix}}",
           "environment": "{{environment}}",
           "coverage": "{{coverage}}",
           "variant": "{{variant}}",

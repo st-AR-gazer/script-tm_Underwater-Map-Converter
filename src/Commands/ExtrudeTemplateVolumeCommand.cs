@@ -80,6 +80,9 @@ internal static class ExtrudeTemplateVolumeCommand
         var emitNameOverride = optionArgs.TryGetValue("--emit-name-override", out var emitNameOverrideRaw)
             ? emitNameOverrideRaw
             : null;
+        var mapNameSuffix = optionArgs.TryGetValue("--map-name-suffix", out var mapNameSuffixRaw)
+            ? mapNameSuffixRaw
+            : null;
         var write = flagArgs.Contains("--write");
 
         var gbx = GbxIo.ParseChallengeBestEffort(inputMapPath);
@@ -210,6 +213,7 @@ internal static class ExtrudeTemplateVolumeCommand
                       "emitPrototypeMapPath": "{{emitPrototypeMapPath.Replace("\\", "\\\\")}}",
                       "emitPrototypeFilter": "{{emitPrototypeFilter.Replace("\\", "\\\\")}}",
                       "emitPrototypeName": "{{emittedPrototypeName.Replace("\\", "\\\\")}}",
+                      "mapNameSuffix": "{{mapNameSuffix?.Replace("\\", "\\\\") ?? string.Empty}}",
                       "overscanBlocks": {{overscanBlocks}},
                       "rotateQuarterTurns": {{rotateQuarterTurns}},
                       "shells": {{shells}},
@@ -272,7 +276,14 @@ internal static class ExtrudeTemplateVolumeCommand
         }
 
         map.HasGhostBlocks = true;
-        if (!map.MapName.Contains("[Water Volume]", StringComparison.Ordinal))
+        if (!string.IsNullOrWhiteSpace(mapNameSuffix))
+        {
+            if (!map.MapName.EndsWith(mapNameSuffix, StringComparison.OrdinalIgnoreCase))
+            {
+                map.MapName = $"{map.MapName} {mapNameSuffix}".Trim();
+            }
+        }
+        else if (!map.MapName.Contains("[Water Volume]", StringComparison.Ordinal))
         {
             map.MapName = $"{map.MapName} [Water Volume]";
         }
@@ -293,6 +304,7 @@ internal static class ExtrudeTemplateVolumeCommand
           "emitPrototypeMapPath": "{{emitPrototypeMapPath.Replace("\\", "\\\\")}}",
           "emitPrototypeFilter": "{{emitPrototypeFilter.Replace("\\", "\\\\")}}",
           "emitPrototypeName": "{{emittedPrototypeName.Replace("\\", "\\\\")}}",
+          "mapNameSuffix": "{{mapNameSuffix?.Replace("\\", "\\\\") ?? string.Empty}}",
           "overscanBlocks": {{overscanBlocks}},
           "rotateQuarterTurns": {{rotateQuarterTurns}},
           "shells": {{shells}},
