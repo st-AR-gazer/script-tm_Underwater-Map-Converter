@@ -58,6 +58,12 @@ internal static class MakeUnderwaterMapCommand
         var gbx = GbxIo.ParseChallengeBestEffort(inputMapPath);
         var map = gbx.Node ?? throw new InvalidOperationException("Map node is null.");
         var environment = UnderwaterMapPresetResolver.DetectEnvironment(map, inputMapPath);
+
+        if (string.Equals(environment.Trim(), "Stadium", StringComparison.OrdinalIgnoreCase))
+        {
+            return RunStadium(inputMapPath, formattedSuffix, coverage, overscanBlocks, map);
+        }
+
         if (!UnderwaterMapPresetResolver.TryResolve(environment, out var preset))
         {
             return CliHelp.Write($"Unsupported environment for make-underwater-map: '{environment}'.");
@@ -160,5 +166,37 @@ internal static class MakeUnderwaterMapCommand
         """);
 
         return 0;
+    }
+
+    private static int RunStadium(string inputMapPath, string formattedSuffix, string coverage, int overscanBlocks, GBX.NET.Engines.Game.CGameCtnChallenge map)
+    {
+        var maxWorldY = (map.Size.Y - 1) * 8;
+        var oneLayerCoordY = UnderwaterMapPresetResolver.DetermineOneLayerCoordY(map);
+        var oneLayerWorldY = oneLayerCoordY * 8;
+
+        var minWorldY = coverage switch
+        {
+            "one-layer" => oneLayerWorldY,
+            "full-stack" => 0,
+            _ => throw new InvalidOperationException($"Unknown coverage '{coverage}'.")
+        };
+
+        var effectiveMaxWorldY = coverage switch
+        {
+            "one-layer" => oneLayerWorldY,
+            "full-stack" => maxWorldY,
+            _ => maxWorldY
+        };
+
+        var outputPath = MapPathHelpers.BuildSuffixedOutputPath(inputMapPath, formattedSuffix);
+        return FillStadiumWaterCommand.Run(
+        [
+            inputMapPath,
+            outputPath,
+            "--min-world-y", minWorldY.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            "--max-world-y", effectiveMaxWorldY.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            "--map-name-suffix", formattedSuffix,
+            "--write"
+        ]);
     }
 }
