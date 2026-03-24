@@ -1,6 +1,6 @@
 # Underwater Map Converter
 
-OOPS, this only works on the NON stadium vistas, as the blocks needed for both are different. There is no easy way (as far as I can tell, tbh I cant tell if it's even possible), to automate adding water blocks to a map extenrally...
+> OOPS, this only works on the NON stadium vistas, as the blocks needed for both are different. There is no easy way (as far as I can tell, tbh I cant tell if it's even possible), to automate adding water blocks to a map extenrally...
 
 Standalone Trackmania 2020 R&D/conversion engine for turning existing maps into underwater-style variants.
 
