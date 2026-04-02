@@ -14,7 +14,8 @@ internal static class CliHelp
         Console.WriteLine();
         Console.WriteLine("Commands:");
         Console.WriteLine("  make-underwater-map <inputMapPath> <suffix> [--variant normal|meshless|both] [--coverage one-layer|full-stack] [--overscan-blocks N] [--rotate-quarter-turns N]");
-        Console.WriteLine("  convert <inputMapPath> [outputMapPath] [--method carrier-lattice|vista-flood|template-volume] [method options]");
+        Console.WriteLine("  convert <inputMapPath> <suffix> [--variant normal|meshless|both] [--coverage one-layer|full-stack] [--overscan-blocks N] [--rotate-quarter-turns N]");
+        Console.WriteLine("  convert <inputMapPath> [outputMapPath] --method carrier-lattice|vista-flood|template-volume [method options]");
         Console.WriteLine("  testing [legacy MapViewer.Testing arguments]");
         Console.WriteLine("  extrude-template-volume <inputMapPath> [outputMapPath] [prototypeFilter] [--template-y N] [--template-map PATH] [--placement-mode template-copy|uniform-sheet] [--emit-prototype-map PATH] [--emit-prototype-filter TEXT] [--emit-name-override TEXT] [--shells N] [--overscan-blocks N] [--rotate-quarter-turns N] [--vertical-step-world F] [--min-world-y F] [--max-world-y F] [--write]");
         Console.WriteLine("  flood-vista <inputMapPath> [outputMapPath] [floodY] [--preserve-terrain-y] [--set-deco-offset]");
@@ -33,6 +34,7 @@ internal static class CliHelp
         Console.WriteLine();
         Console.WriteLine("Examples:");
         Console.WriteLine("  UnderwaterMapConverter make-underwater-map \"C:\\Maps\\Winter 2026 - 03.Map.Gbx\" \"Underwater\" --variant both --coverage full-stack");
+        Console.WriteLine("  UnderwaterMapConverter convert \"C:\\Maps\\Winter 2026 - 01.Map.Gbx\" \"Underwater\" --variant meshless --coverage full-stack");
         Console.WriteLine("  UnderwaterMapConverter convert \"C:\\Maps\\Input.Map.Gbx\"");
         Console.WriteLine("  UnderwaterMapConverter convert \"C:\\Maps\\Input.Map.Gbx\" --method vista-flood --set-deco-offset");
         Console.WriteLine("  UnderwaterMapConverter convert \"C:\\Maps\\Input.Map.Gbx\" --method template-volume --template-map \"C:\\Maps\\Template.Map.Gbx\" --min-world-y 168 --max-world-y 168");

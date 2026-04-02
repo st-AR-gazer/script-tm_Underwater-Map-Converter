@@ -21,17 +21,28 @@ internal static class MapPathHelpers
     public static string BuildDefaultOutputPath(string inputMapPath, string suffix)
     {
         var directory = Path.GetDirectoryName(inputMapPath) ?? Environment.CurrentDirectory;
-        return Path.Combine(directory, $"{BuildMapStem(inputMapPath)} {FormatParenthesizedSuffix(suffix)}.Map.Gbx");
+        return Path.Combine(directory, BuildSuffixedFileName(Path.GetFileName(inputMapPath), suffix));
     }
 
     public static string BuildSuffixedOutputPath(string inputMapPath, string suffix)
-        => Path.Combine(Path.GetDirectoryName(inputMapPath) ?? Environment.CurrentDirectory, $"{BuildMapStem(inputMapPath)} {FormatParenthesizedSuffix(suffix)}.Map.Gbx");
+        => Path.Combine(Path.GetDirectoryName(inputMapPath) ?? Environment.CurrentDirectory, BuildSuffixedFileName(Path.GetFileName(inputMapPath), suffix));
 
-    private static string BuildMapStem(string inputMapPath)
+    private static string BuildSuffixedFileName(string fileName, string suffix)
     {
-        var fileName = Path.GetFileName(inputMapPath);
-        return fileName.EndsWith(".Map.Gbx", StringComparison.OrdinalIgnoreCase)
-            ? fileName[..^8]
-            : Path.GetFileNameWithoutExtension(fileName);
+        var formattedSuffix = FormatParenthesizedSuffix(suffix);
+        var mapExtensionIndex = fileName.LastIndexOf(".Map", StringComparison.OrdinalIgnoreCase);
+
+        if (mapExtensionIndex >= 0)
+        {
+            var stem = fileName[..mapExtensionIndex];
+            var mapTail = fileName[mapExtensionIndex..];
+            return $"{stem} {formattedSuffix}{mapTail}";
+        }
+
+        var extension = Path.GetExtension(fileName);
+        var stemWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+        return string.IsNullOrEmpty(extension)
+            ? $"{stemWithoutExtension} {formattedSuffix}"
+            : $"{stemWithoutExtension} {formattedSuffix}{extension}";
     }
 }

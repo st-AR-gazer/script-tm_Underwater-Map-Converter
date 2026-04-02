@@ -61,7 +61,7 @@ internal static class MakeUnderwaterMapCommand
 
         if (string.Equals(environment.Trim(), "Stadium", StringComparison.OrdinalIgnoreCase))
         {
-            return RunStadium(inputMapPath, formattedSuffix, coverage, overscanBlocks, map);
+            return WriteError("Stadium maps are not supported by make-underwater-map.");
         }
 
         if (!UnderwaterMapPresetResolver.TryResolve(environment, out var preset))
@@ -168,35 +168,9 @@ internal static class MakeUnderwaterMapCommand
         return 0;
     }
 
-    private static int RunStadium(string inputMapPath, string formattedSuffix, string coverage, int overscanBlocks, GBX.NET.Engines.Game.CGameCtnChallenge map)
+    private static int WriteError(string message)
     {
-        var maxWorldY = (map.Size.Y - 1) * 8;
-        var oneLayerCoordY = UnderwaterMapPresetResolver.DetermineOneLayerCoordY(map);
-        var oneLayerWorldY = oneLayerCoordY * 8;
-
-        var minWorldY = coverage switch
-        {
-            "one-layer" => oneLayerWorldY,
-            "full-stack" => 0,
-            _ => throw new InvalidOperationException($"Unknown coverage '{coverage}'.")
-        };
-
-        var effectiveMaxWorldY = coverage switch
-        {
-            "one-layer" => oneLayerWorldY,
-            "full-stack" => maxWorldY,
-            _ => maxWorldY
-        };
-
-        var outputPath = MapPathHelpers.BuildSuffixedOutputPath(inputMapPath, formattedSuffix);
-        return FillStadiumWaterCommand.Run(
-        [
-            inputMapPath,
-            outputPath,
-            "--min-world-y", minWorldY.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            "--max-world-y", effectiveMaxWorldY.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            "--map-name-suffix", formattedSuffix,
-            "--write"
-        ]);
+        Console.Error.WriteLine(message);
+        return 1;
     }
 }

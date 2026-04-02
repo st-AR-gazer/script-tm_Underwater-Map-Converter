@@ -9,6 +9,11 @@ internal static class ConvertCommand
             return CliHelp.Write("Missing input map path for convert.");
         }
 
+        if (!args.Contains("--method", StringComparer.OrdinalIgnoreCase) && LooksLikeMakeUnderwaterMapInvocation(args))
+        {
+            return MakeUnderwaterMapCommand.Run(args);
+        }
+
         var method = "carrier-lattice";
         var forwardedArgs = new List<string>();
 
@@ -38,6 +43,44 @@ internal static class ConvertCommand
             "template-volume" or "volume" => ExtrudeTemplateVolumeCommand.Run(EnsureWrite(forwardedArgs)),
             _ => CliHelp.Write($"Unknown convert method '{method}'.")
         };
+    }
+
+    private static bool LooksLikeMakeUnderwaterMapInvocation(string[] args)
+    {
+        if (args.Length < 2)
+        {
+            return false;
+        }
+
+        if (args[1].StartsWith("--", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        if (args.Contains("--variant", StringComparer.OrdinalIgnoreCase)
+            || args.Contains("--coverage", StringComparer.OrdinalIgnoreCase)
+            || args.Contains("--overscan-blocks", StringComparer.OrdinalIgnoreCase)
+            || args.Contains("--rotate-quarter-turns", StringComparer.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return !LooksLikeOutputPath(args[1]);
+    }
+
+    private static bool LooksLikeOutputPath(string value)
+    {
+        if (value.EndsWith(".gbx", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (Path.IsPathRooted(value))
+        {
+            return true;
+        }
+
+        return value.IndexOfAny([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar]) >= 0;
     }
 
     private static string[] EnsureWrite(List<string> args)

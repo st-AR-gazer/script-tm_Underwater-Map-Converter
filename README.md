@@ -30,6 +30,8 @@ dotnet run --project src\UnderwaterMapConverter.csproj -- make-underwater-map "C
 - picks the matching carrier family
 - applies the current uniform-sheet placement logic
 - exports a new map with the suffix you choose
+- places the suffix before the `.Map*.Gbx` tail, e.g. `Winter 2026 - 01 (Underwater).Map(1).Gbx`
+- errors out for `Stadium` maps instead of trying to convert them
 
 ## Advanced workflow
 
@@ -40,3 +42,13 @@ Lower-level commands still exist for more manual control:
 - `flood-vista`
 - `place-water-carrier-lattice`
 - `testing`
+
+## Packaging
+
+To publish a single Windows executable that bundles the native LZO dependency:
+
+```powershell
+dotnet publish src\UnderwaterMapConverter.csproj -c Release -r win-x64 -o dist\win-x64
+```
+
+That publish output should contain one distributable `UnderwaterMapConverter.exe` instead of requiring a separate `liblzo2.dll`.
