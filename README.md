@@ -35,6 +35,11 @@ dotnet run --project src\UnderwaterMapConverter.csproj -- make-underwater-map "C
 - places the suffix before the `.Map*.Gbx` tail, e.g. `Winter 2026 - 01 (Underwater).Map(1).Gbx`
 - errors out for `Stadium` maps instead of trying to convert them
 
+Current meshless note:
+
+- meshless output now uses the environment-matching diagonal bob carrier blocks as the prototype source
+- emitted meshless block ids target the existing `MinimalWaterWrappers\...\Working\...` block files under `Documents\Trackmania2020\Blocks`
+
 ## Advanced workflow
 
 Lower-level commands still exist for more manual control:

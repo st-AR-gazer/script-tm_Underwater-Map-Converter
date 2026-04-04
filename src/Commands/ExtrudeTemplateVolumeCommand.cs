@@ -288,6 +288,8 @@ internal static class ExtrudeTemplateVolumeCommand
             map.MapName = $"{map.MapName} [Water Volume]";
         }
 
+        var embeddedCustomBlockCount = CustomBlockEmbedding.EmbedReferencedCustomBlocks(map);
+
         Directory.CreateDirectory(Path.GetDirectoryName(outputMapPath)!);
         gbx.Save(outputMapPath);
 
@@ -315,6 +317,7 @@ internal static class ExtrudeTemplateVolumeCommand
           "layerCount": {{layerWorldYs.Count}},
           "addedBlockCount": {{added}},
           "skippedExistingCount": {{skippedExisting}},
+          "embeddedCustomBlockCount": {{embeddedCustomBlockCount}},
           "totalBlockCount": {{map.Blocks.Count}}
         }
         """);

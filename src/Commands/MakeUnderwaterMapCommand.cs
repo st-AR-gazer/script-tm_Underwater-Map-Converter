@@ -57,16 +57,11 @@ internal static class MakeUnderwaterMapCommand
 
         var gbx = GbxIo.ParseChallengeBestEffort(inputMapPath);
         var map = gbx.Node ?? throw new InvalidOperationException("Map node is null.");
-        var environment = UnderwaterMapPresetResolver.DetectEnvironment(map, inputMapPath);
+        var collection = UnderwaterMapPresetResolver.DetectEnvironment(map);
 
-        if (string.Equals(environment.Trim(), "Stadium", StringComparison.OrdinalIgnoreCase))
+        if (!UnderwaterMapPresetResolver.TryResolve(collection, out var preset))
         {
-            return WriteError("Stadium maps are not supported by make-underwater-map.");
-        }
-
-        if (!UnderwaterMapPresetResolver.TryResolve(environment, out var preset))
-        {
-            return CliHelp.Write($"Unsupported environment for make-underwater-map: '{environment}'.");
+            return CliHelp.Write($"Collection '{collection}' is not supported by make-underwater-map.");
         }
 
         var maxWorldY = (map.Size.Y - 1) * 8;
@@ -92,6 +87,13 @@ internal static class MakeUnderwaterMapCommand
         if (!runNormal && !runMeshless)
         {
             return CliHelp.Write($"Unknown variant '{variant}'. Use normal, meshless, or both.");
+        }
+
+        if (runMeshless && (string.IsNullOrWhiteSpace(preset.MeshlessPrototypeMapPath) || string.IsNullOrWhiteSpace(preset.MeshlessPrototypeFilter)))
+        {
+            return CliHelp.Write(
+                $"Meshless conversion for '{collection}' is not configured with a matching custom-block prototype yet. " +
+                $"Add a prototype map containing '{preset.MeshlessEmitName}' and wire it into UnderwaterMapPresetResolver.");
         }
 
         if (runNormal)
@@ -133,8 +135,8 @@ internal static class MakeUnderwaterMapCommand
                 UnderwaterMapPresetResolver.DefaultPrototypeFilter,
                 "--template-map", UnderwaterMapPresetResolver.DefaultTemplateMapPath,
                 "--placement-mode", "uniform-sheet",
-                "--emit-prototype-map", UnderwaterMapPresetResolver.DefaultMeshlessPrototypeMapPath,
-                "--emit-prototype-filter", UnderwaterMapPresetResolver.DefaultMeshlessPrototypeFilter,
+                "--emit-prototype-map", preset.MeshlessPrototypeMapPath!,
+                "--emit-prototype-filter", preset.MeshlessPrototypeFilter!,
                 "--emit-name-override", preset.MeshlessEmitName,
                 "--overscan-blocks", overscanBlocks.ToString(CultureInfo.InvariantCulture),
                 "--rotate-quarter-turns", rotateQuarterTurns.ToString(CultureInfo.InvariantCulture),
@@ -154,7 +156,7 @@ internal static class MakeUnderwaterMapCommand
         {
           "inputMapPath": "{{inputMapPath.Replace("\\", "\\\\")}}",
           "suffix": "{{formattedSuffix}}",
-          "environment": "{{environment}}",
+          "collection": "{{collection}}",
           "coverage": "{{coverage}}",
           "variant": "{{variant}}",
           "overscanBlocks": {{overscanBlocks}},

@@ -5,6 +5,7 @@ namespace UnderwaterMapConverter.Infrastructure;
 
 internal static class ReflectionAccess
 {
+
     public static string? ReadStringProperty(object instance, string propertyName)
     {
         var property = instance.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
@@ -91,27 +92,5 @@ internal static class ReflectionAccess
             .Replace(".Item.Gbx", string.Empty, StringComparison.OrdinalIgnoreCase)
             .Replace('/', '\\')
             .Trim();
-    }
-
-    public static string? TryExtractEnvironmentFromHeader(string mapPath)
-    {
-        try
-        {
-            var bytes = File.ReadAllBytes(mapPath);
-            var text = System.Text.Encoding.Latin1.GetString(bytes);
-
-            var quotedMatch = System.Text.RegularExpressions.Regex.Match(text, "envir\\s*=\\s*\\\"(?<env>[^\\\"]+)\\\"", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-            if (quotedMatch.Success)
-            {
-                return quotedMatch.Groups["env"].Value.Trim();
-            }
-
-            var bareMatch = System.Text.RegularExpressions.Regex.Match(text, "envir\\s*=\\s*(?<env>[A-Za-z0-9_]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-            return bareMatch.Success ? bareMatch.Groups["env"].Value.Trim() : null;
-        }
-        catch
-        {
-            return null;
-        }
     }
 }

@@ -43,9 +43,7 @@ internal static class FloodVistaCommand
         var gbx = GbxIo.ParseChallengeBestEffort(inputMapPath);
         var map = gbx.Node ?? throw new InvalidOperationException("Map node is null.");
 
-        var environment = ReflectionAccess.TryExtractEnvironmentFromHeader(inputMapPath)
-                          ?? map.Collection?.ToString()
-                          ?? string.Empty;
+        var environment = UnderwaterMapPresetResolver.DetectEnvironment(map);
         var targetWaterZoneId = ResolveTargetWaterZoneId(environment);
         if (targetWaterZoneId is null)
         {
