@@ -117,3 +117,24 @@ The current best path is:
 - exactly what produces wet-wheels / gameplay water on the car
 - whether a truly stock-client whole-map underwater solution exists without tradeoffs
 - how much `CustomizedVariants / Crystal` can help with custom visuals
+
+## 8) Embedded custom wrapper path rule (confirmed for current tooling)
+
+One important implementation detail is now confirmed for map-embedded custom block wrappers:
+
+- the wrapper bytes can be present inside the map and still fail to load in-game if the embedded ZIP entry path is wrong
+
+Current working rule:
+
+- embedded block wrappers need a relative game-style path rooted at `Blocks/`
+- example working entry:
+  - `Blocks/MinimalWaterWrappers/WhiteShore/Working/RoadIceWithWallLeftDiagLeftStraightOnWaterShore1.Block.Gbx`
+
+Current broken pattern:
+
+- absolute ZIP entry paths such as `C:/Users/.../Trackmania2020/Blocks/...`
+
+Observed result when the path is wrong:
+
+- the saved map's expected embedded item-model entry loses the block id and keeps only collection / author
+- the game then reports the custom block as missing even though the wrapper file bytes are embedded

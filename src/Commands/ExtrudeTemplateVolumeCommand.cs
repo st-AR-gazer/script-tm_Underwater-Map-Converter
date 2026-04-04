@@ -181,6 +181,7 @@ internal static class ExtrudeTemplateVolumeCommand
         var emittedPrototypeName = string.IsNullOrWhiteSpace(emitNameOverride)
             ? RewritePrototypeName(emitPrototype.Name)
             : emitNameOverride;
+        var emittedPrototypeAuthor = CustomBlockEmbedding.ResolveCustomBlockAuthor(emittedPrototypeName);
 
         var projectedCount = 0L;
         foreach (var placement in BuildPlacements(
@@ -261,16 +262,20 @@ internal static class ExtrudeTemplateVolumeCommand
 
             var clone = (CGameCtnBlock)emitPrototype.DeepClone();
             clone.Name = emittedPrototypeName;
-            clone.BlockModel = clone.BlockModel with { Id = emittedPrototypeName };
+            clone.BlockModel = clone.BlockModel with { Id = emittedPrototypeName, Author = emittedPrototypeAuthor };
+            clone.Direction = placement.Direction;
             clone.IsGhost = true;
             clone.IsFree = true;
             clone.AbsolutePositionInMap = placement.World;
-            clone.Direction = placement.Direction;
-            clone.YawPitchRoll = new Vec3(AdditionalMath.ToRadians(placement.Direction), 0f, 0f);
+            var yawPitchRoll = new Vec3(AdditionalMath.ToRadians(placement.Direction), 0f, 0f);
+            clone.PitchYawRoll = yawPitchRoll;
+            clone.YawPitchRoll = yawPitchRoll;
+
             clone.Coord = new Int3(
                 WorldToCoord(placement.World.X, 32f),
                 WorldToCoord(placement.World.Y, 8f),
                 WorldToCoord(placement.World.Z, 32f));
+
             map.Blocks.Add(clone);
             added++;
         }

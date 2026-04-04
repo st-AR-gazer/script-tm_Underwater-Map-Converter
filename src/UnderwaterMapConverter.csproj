@@ -16,4 +16,9 @@
     <PackageReference Include="GBX.NET.ZLib" Version="1.*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="..\\assets\\blocks\\*.Block.Gbx" LogicalName="BundledAssets.blocks.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\\assets\\maps\\*.Map.Gbx" LogicalName="BundledAssets.maps.%(Filename)%(Extension)" />
+  </ItemGroup>
+
 </Project>

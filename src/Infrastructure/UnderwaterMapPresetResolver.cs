@@ -4,17 +4,11 @@ namespace UnderwaterMapConverter.Infrastructure;
 
 internal static class UnderwaterMapPresetResolver
 {
-    private const string DefaultTemplateMapPathFallback = @"C:\Users\ar\Documents\Trackmania2020\Maps\My Maps\example map 3.Map.Gbx";
-    private const string DefaultNormalPrototypeMapPathFallback = @"C:\Users\ar\Documents\Trackmania2020\Maps\My Maps\example map 3.Map.Gbx";
     public const string DefaultNormalPrototypeFilter = "RoadIceWithWallLeftDiagLeftStraightOnWaterHill";
-    private const string WhiteShoreMeshlessPrototypeMapPathFallback = @"C:\Users\ar\Documents\Trackmania2020\Maps\My Maps\Water Test White Shore.Map.Gbx";
-    private const string GreenCoastMeshlessPrototypeMapPathFallback = @"C:\Users\ar\Documents\Trackmania2020\Maps\My Maps\Water Test Great Coast.Map.Gbx";
-    private const string RedIslandMeshlessPrototypeMapPathFallback = @"C:\Users\ar\Documents\Trackmania2020\Maps\My Maps\Water Test Red Island.Map.Gbx";
-    private const string BlueBayMeshlessPrototypeMapPathFallback = @"C:\Users\ar\Documents\Trackmania2020\Maps\My Maps\Water Test Blue Bay.Map.Gbx";
     public const string DefaultPrototypeFilter = "RoadIceWithWallLeftDiagLeftStraightOn";
 
-    public static string DefaultTemplateMapPath => ResolveBundledMapPath("example map 3.Map.Gbx", DefaultTemplateMapPathFallback);
-    public static string DefaultNormalPrototypeMapPath => ResolveBundledMapPath("example map 3.Map.Gbx", DefaultNormalPrototypeMapPathFallback);
+    public static string DefaultTemplateMapPath => BundledAssetResolver.ResolveMapPath("example map 3.Map.Gbx");
+    public static string DefaultNormalPrototypeMapPath => BundledAssetResolver.ResolveMapPath("example map 3.Map.Gbx");
 
     public static string DetectEnvironment(CGameCtnChallenge map)
         => map.Collection?.ToString()
@@ -28,25 +22,25 @@ internal static class UnderwaterMapPresetResolver
             "WhiteShore" => new UnderwaterMapPreset(
                 Environment: "WhiteShore",
                 NormalEmitName: "RoadIceWithWallLeftDiagLeftStraightOnWaterShore1",
-                MeshlessPrototypeMapPath: TryResolveBundledMapPath("Water Test White Shore.Map.Gbx", WhiteShoreMeshlessPrototypeMapPathFallback),
+                MeshlessPrototypeMapPath: BundledAssetResolver.ResolveMapPath("Water Test White Shore.Map.Gbx"),
                 MeshlessPrototypeFilter: "RoadIceWithWallLeftDiagLeftStraightOnWaterShore1",
                 MeshlessEmitName: @"MinimalWaterWrappers\WhiteShore\Working\RoadIceWithWallLeftDiagLeftStraightOnWaterShore1.Block.Gbx_CustomBlock"),
             "GreenCoast" => new UnderwaterMapPreset(
                 Environment: "GreenCoast",
                 NormalEmitName: "RoadIceWithWallLeftDiagLeftStraightOnLakeShore",
-                MeshlessPrototypeMapPath: TryResolveBundledMapPath("Water Test Great Coast.Map.Gbx", GreenCoastMeshlessPrototypeMapPathFallback),
+                MeshlessPrototypeMapPath: BundledAssetResolver.ResolveMapPath("Water Test Great Coast.Map.Gbx"),
                 MeshlessPrototypeFilter: "RoadIceWithWallLeftDiagLeftStraightOnLakeShore",
                 MeshlessEmitName: @"MinimalWaterWrappers\GreenCoast\Working\RoadIceWithWallLeftDiagLeftStraightOnLakeShore.Block.Gbx_CustomBlock"),
             "RedIsland" => new UnderwaterMapPreset(
                 Environment: "RedIsland",
                 NormalEmitName: "RoadIceWithWallLeftDiagLeftStraightOnWaterHill",
-                MeshlessPrototypeMapPath: TryResolveBundledMapPath("Water Test Red Island.Map.Gbx", RedIslandMeshlessPrototypeMapPathFallback),
+                MeshlessPrototypeMapPath: BundledAssetResolver.ResolveMapPath("Water Test Red Island.Map.Gbx"),
                 MeshlessPrototypeFilter: "RoadIceWithWallLeftDiagLeftStraightOnWaterHill",
                 MeshlessEmitName: @"MinimalWaterWrappers\RedIsland\Working\RoadIceWithWallLeftDiagLeftStraightOnWaterHill.Block.Gbx_CustomBlock"),
             "BlueBay" => new UnderwaterMapPreset(
                 Environment: "BlueBay",
                 NormalEmitName: "RoadIceWithWallLeftDiagLeftStraightOnBeach",
-                MeshlessPrototypeMapPath: TryResolveBundledMapPath("Water Test Blue Bay.Map.Gbx", BlueBayMeshlessPrototypeMapPathFallback),
+                MeshlessPrototypeMapPath: BundledAssetResolver.ResolveMapPath("Water Test Blue Bay.Map.Gbx"),
                 MeshlessPrototypeFilter: "RoadIceWithWallLeftDiagLeftStraightOnBeach",
                 MeshlessEmitName: @"MinimalWaterWrappers\BlueBay\Working\RoadIceWithWallLeftDiagLeftStraightOnBeach.Block.Gbx_CustomBlock"),
             _ => default
@@ -71,36 +65,6 @@ internal static class UnderwaterMapPresetResolver
             : 0;
     }
 
-    private static string ResolveBundledMapPath(string fileName, string fallbackPath)
-        => TryResolveBundledMapPath(fileName, fallbackPath) ?? fallbackPath;
-
-    private static string? TryResolveBundledMapPath(string fileName, string? fallbackPath = null)
-    {
-        var baseDirectory = AppContext.BaseDirectory;
-        var currentDirectory = Environment.CurrentDirectory;
-        var currentDirectoryParent = Directory.GetParent(currentDirectory)?.FullName;
-        var candidates = new[]
-        {
-            Path.Combine(currentDirectory, fileName),
-            Path.Combine(currentDirectory, "templates", fileName),
-            currentDirectoryParent is null ? null : Path.Combine(currentDirectoryParent, fileName),
-            currentDirectoryParent is null ? null : Path.Combine(currentDirectoryParent, "templates", fileName),
-            Path.Combine(baseDirectory, "templates", fileName),
-            Path.Combine(baseDirectory, fileName),
-        }.Where(static path => !string.IsNullOrWhiteSpace(path)).Cast<string>();
-
-        foreach (var candidate in candidates)
-        {
-            if (File.Exists(candidate))
-            {
-                return candidate;
-            }
-        }
-
-        return !string.IsNullOrWhiteSpace(fallbackPath) && File.Exists(fallbackPath)
-            ? fallbackPath
-            : null;
-    }
 }
 
 internal readonly record struct UnderwaterMapPreset(

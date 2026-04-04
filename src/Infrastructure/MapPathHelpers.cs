@@ -20,12 +20,14 @@ internal static class MapPathHelpers
 
     public static string BuildDefaultOutputPath(string inputMapPath, string suffix)
     {
-        var directory = Path.GetDirectoryName(inputMapPath) ?? Environment.CurrentDirectory;
-        return Path.Combine(directory, BuildSuffixedFileName(Path.GetFileName(inputMapPath), suffix));
+        return Path.Combine(GetDefaultOutputDirectory(), BuildSuffixedFileName(Path.GetFileName(inputMapPath), suffix));
     }
 
     public static string BuildSuffixedOutputPath(string inputMapPath, string suffix)
-        => Path.Combine(Path.GetDirectoryName(inputMapPath) ?? Environment.CurrentDirectory, BuildSuffixedFileName(Path.GetFileName(inputMapPath), suffix));
+        => Path.Combine(GetDefaultOutputDirectory(), BuildSuffixedFileName(Path.GetFileName(inputMapPath), suffix));
+
+    private static string GetDefaultOutputDirectory()
+        => Environment.CurrentDirectory;
 
     private static string BuildSuffixedFileName(string fileName, string suffix)
     {

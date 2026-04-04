@@ -2,6 +2,6 @@ bin/
 obj/
 .vs/
 .idea/
-.tmp_test_outputs/
-.tmp_doc_backups/
+.tmp*/
+.safe*/
 dist/

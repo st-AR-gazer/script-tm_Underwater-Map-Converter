@@ -1,20 +1,20 @@
+using System.Collections.Immutable;
 using System.IO.Compression;
+using System.Reflection;
+using GBX.NET;
 using GBX.NET.Engines.Game;
+using GBX.NET.Engines.GameData;
 
 namespace UnderwaterMapConverter.Infrastructure;
 
 internal static class CustomBlockEmbedding
 {
-    private static readonly string TrackmaniaBlocksRoot = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-        "Trackmania2020",
-        "Blocks");
-
     public static int EmbedReferencedCustomBlocks(CGameCtnChallenge map)
     {
         var assets = CollectCustomBlockAssets(map).ToList();
         if (assets.Count == 0)
         {
+            SetExpectedEmbeddedItemModels(map, ImmutableList<Ident>.Empty);
             return 0;
         }
 
@@ -27,7 +27,30 @@ internal static class CustomBlockEmbedding
             }
         });
 
+        SetExpectedEmbeddedItemModels(
+            map,
+            assets
+                .Select(asset => asset.ExpectedEmbeddedItemModel)
+                .Distinct()
+                .ToImmutableList());
+
         return assets.Count;
+    }
+
+    public static string ResolveCustomBlockAuthor(string? rawId)
+    {
+        if (string.IsNullOrWhiteSpace(rawId) || !rawId.EndsWith(".Block.Gbx_CustomBlock", StringComparison.OrdinalIgnoreCase))
+        {
+            return string.Empty;
+        }
+
+        var relativeBlockPath = rawId
+            .Replace(".Block.Gbx_CustomBlock", ".Block.Gbx", StringComparison.OrdinalIgnoreCase)
+            .Replace('/', '\\')
+            .TrimStart('\\');
+
+        var sourceFilePath = BundledAssetResolver.ResolveBlockPath(Path.GetFileName(relativeBlockPath));
+        return sourceFilePath is null ? string.Empty : ReadWrapperAuthor(sourceFilePath);
     }
 
     private static IEnumerable<CustomBlockAsset> CollectCustomBlockAssets(CGameCtnChallenge map)
@@ -62,45 +85,69 @@ internal static class CustomBlockEmbedding
             .Replace('/', '\\')
             .TrimStart('\\');
 
-        var sourceFilePath = ResolveSourceFilePath(relativeBlockPath);
-        if (sourceFilePath is null)
-        {
-            throw new FileNotFoundException($"Could not resolve custom block source for '{rawId}'.", relativeBlockPath);
-        }
+        var sourceFilePath = BundledAssetResolver.ResolveBlockPath(Path.GetFileName(relativeBlockPath));
 
-        var embeddedEntryPath = Path.Combine(TrackmaniaBlocksRoot, relativeBlockPath).Replace('\\', '/');
-        asset = new CustomBlockAsset(sourceFilePath, embeddedEntryPath);
+        var expectedEmbeddedItemModel = BuildExpectedEmbeddedItemModel(relativeBlockPath, sourceFilePath);
+        var embeddedEntryPath = Path.Combine("Blocks", relativeBlockPath).Replace('\\', '/');
+        asset = new CustomBlockAsset(sourceFilePath, embeddedEntryPath, expectedEmbeddedItemModel);
         return true;
     }
 
-    private static string? ResolveSourceFilePath(string relativeBlockPath)
+    private static Ident BuildExpectedEmbeddedItemModel(string relativeBlockPath, string sourceFilePath)
     {
-        var fileName = Path.GetFileName(relativeBlockPath);
-        var currentDirectory = Environment.CurrentDirectory;
-        var currentDirectoryParent = Directory.GetParent(currentDirectory)?.FullName;
-        var baseDirectory = AppContext.BaseDirectory;
-
-        var candidates = new[]
-        {
-            Path.Combine(TrackmaniaBlocksRoot, relativeBlockPath),
-            Path.Combine(currentDirectory, relativeBlockPath),
-            Path.Combine(currentDirectory, fileName),
-            currentDirectoryParent is null ? null : Path.Combine(currentDirectoryParent, relativeBlockPath),
-            currentDirectoryParent is null ? null : Path.Combine(currentDirectoryParent, fileName),
-            Path.Combine(baseDirectory, relativeBlockPath),
-            Path.Combine(baseDirectory, fileName),
-        };
-
-        foreach (var candidate in candidates)
-        {
-            if (!string.IsNullOrWhiteSpace(candidate) && File.Exists(candidate))
-            {
-                return candidate;
-            }
-        }
-
-        return null;
+        var environment = ExtractEnvironment(relativeBlockPath);
+        var author = ReadWrapperAuthor(sourceFilePath);
+        return new Ident(relativeBlockPath, environment, author);
     }
 
-    private readonly record struct CustomBlockAsset(string SourceFilePath, string EmbeddedEntryPath);
+    private static string ExtractEnvironment(string relativeBlockPath)
+    {
+        var segments = relativeBlockPath.Split('\\', StringSplitOptions.RemoveEmptyEntries);
+        return segments.Length >= 2 ? segments[1] : string.Empty;
+    }
+
+    private static string ReadWrapperAuthor(string sourceFilePath)
+    {
+        var settings = new GbxReadSettings
+        {
+            IgnoreExceptionsInBody = true,
+            SafeSkippableChunks = true,
+        };
+
+        try
+        {
+            return Gbx.Parse<CGameItemModel>(sourceFilePath, settings).Node?.Ident.Author ?? string.Empty;
+        }
+        catch
+        {
+            return Gbx.Parse<CGameItemModel>(sourceFilePath, settings with { OpenPlanetHookExtractMode = true }).Node?.Ident.Author ?? string.Empty;
+        }
+    }
+
+    private static void SetExpectedEmbeddedItemModels(CGameCtnChallenge map, ImmutableList<Ident> value)
+    {
+        var property = map.GetType().GetProperty(
+            "ExpectedEmbeddedItemModels",
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+        var setter = property?.GetSetMethod(nonPublic: true);
+        if (setter is not null)
+        {
+            setter.Invoke(map, [value]);
+            return;
+        }
+
+        var backingField = map.GetType().GetField(
+            "<ExpectedEmbeddedItemModels>k__BackingField",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+
+        if (backingField is not null)
+        {
+            backingField.SetValue(map, value);
+            return;
+        }
+
+        throw new InvalidOperationException("Could not update ExpectedEmbeddedItemModels on CGameCtnChallenge.");
+    }
+    private readonly record struct CustomBlockAsset(string SourceFilePath, string EmbeddedEntryPath, Ident ExpectedEmbeddedItemModel);
 }
